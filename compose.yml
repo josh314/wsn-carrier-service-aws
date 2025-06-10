@@ -1,0 +1,37 @@
+# Common configuration for all lambda services
+x-lambda-common: &lambda-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+
+  environment:
+    - AWS_REGION=us-east-1
+
+  env_file:
+    - .env
+
+  develop:
+    watch:
+      - action: sync+restart
+        path: ./src
+        target: /var/task/dist
+
+      - action: rebuild
+        path: package.json
+
+      - action: restart
+        path: .env
+
+  ports:
+    - "8888:8080"  # Expose Lambda for testing
+
+  volumes:
+    # - .:/var/task  # Mount the entire project to preserve relative paths
+    - ./dist:/var/task/dist
+    - "~/.aws:/root/.aws:ro" # Mount AWS credentials for local testing
+
+services:
+  carrier-service-lambda:
+    <<: *lambda-common
+    container_name: carrier-service-lambda
+    command: [ "dist/index.handler" ]

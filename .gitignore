@@ -1,0 +1,14 @@
+# secrets and envvars
+.env
+
+# build output
+dist
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+cdk.context.json
+
+# temp and working files
+todo.md
+*log

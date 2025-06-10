@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import * as shopify from 'shopify/client';
+import * as shopify from './shopify/client';
 /* eslint-enable no-unused-vars */
 
 export interface TableRateProviderRate extends CarrierService.RateProviderRate {
@@ -8,7 +8,7 @@ export interface TableRateProviderRate extends CarrierService.RateProviderRate {
 
 /**********************************************************
  * RateProvider
- * 
+ *
  **************/
 
 export class TableRateProvider implements CarrierService.RateProvider {
@@ -18,7 +18,7 @@ export class TableRateProvider implements CarrierService.RateProvider {
   constructor(rateTable: shopify.RateTable) {
 
     this.table = rateTable;
- 
+
   }
 
   public getTableRate( productVariantId: shopify.ProductVariantId ): shopify.TableRate | undefined {
@@ -37,7 +37,7 @@ export class TableRateProvider implements CarrierService.RateProvider {
       if( shippingItem.shopifyProduct ) {
 
         tableRateEntry = this.getTableRate( shippingItem.shopifyProduct.variantId );
-        
+
       }
 
       if( tableRateEntry ) {

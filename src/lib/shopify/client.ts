@@ -1,9 +1,9 @@
-import * as rp from 'request-promise';
-import { Product } from 'shopify/product';
+import rp from 'request-promise';
+import { Product } from './product';
 
 /*********************************************
  * Types
- * 
+ *
  * *******************/
 interface ClientAuthOpts {
 	readonly store: string,
@@ -18,7 +18,7 @@ export type RateTable = Map<ProductVariantId, TableRate>;
 
 /*****************************
  * GraphQl request strings
- * 
+ *
  ****************************/
 const gqlQueries = {
 
@@ -41,7 +41,7 @@ const gqlQueries = {
             totalUnits: metafield(namespace:"lot", key:"totalUnits") {
               value
             }
-          }          
+          }
         }`).join('')}}
     `;
   },
@@ -117,13 +117,13 @@ function graphQlProductVariantRate2RateTableEntry( graphQlProductVariantRateResp
 
 /*****************************************
  * Client
- * 
+ *
  *********************************/
 
 export class Client {
   authOpts: ClientAuthOpts;
 
-  constructor(_clientAuthOpts: ClientAuthOpts) {  
+  constructor(_clientAuthOpts: ClientAuthOpts) {
     this.authOpts = _clientAuthOpts;
   }
 
@@ -159,7 +159,7 @@ export class Client {
         console.log(resp);
       }
     }
-    
+
     return resp;
   }
 
@@ -176,7 +176,7 @@ export class Client {
   }
 
   async getRateTable(): Promise< RateTable > {
-    
+
     const shopifyResp: Shopify.GraphQlResponse = await this.request({
       gqlQuery: gqlQueries.getRateTable(),
     });

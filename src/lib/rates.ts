@@ -1,7 +1,7 @@
-import * as shopify from 'shopify/client';
+import * as shopify from './shopify/client';
 // import { FreeRateProvider } from 'free-rates'; // Not currently in use
-import { ZoneRateProvider } from 'zone-rates';
-import { TableRateProvider } from 'table-rates';
+import { ZoneRateProvider } from './zone-rates';
+import { TableRateProvider } from './table-rates';
 
 function createEstimatedPalletBreakdownServiceShippingItems(): CarrierService.ShippingItem[] {
 

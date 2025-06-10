@@ -1,10 +1,10 @@
-import { computeRates } from 'rates';
+import { computeRates } from '../../lib/rates';
 
-import { sendErrorNotification } from 'notify';
+import { sendErrorNotification } from '../../lib/notify';
 
-/****************************************** 
+/******************************************
  * Handler
- * 
+ *
  * ******************************/
 
 export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<AWSLambda.APIGatewayProxyResult> => {
@@ -21,7 +21,7 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     }
     else if (event.httpMethod.toUpperCase() === 'GET') {
       resp = await getSampleRate();
-    } 
+    }
 
     if(!resp) {
       throw new Error('Invalid request.');
@@ -35,18 +35,34 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
   catch (e) {
     console.error(new Date());
     console.error(e);
-    if( process.env.NODE_ENV === 'production' ) {
-      sendErrorNotification(
-        e,
-        event,
-        context,
-        rateRequestBody
-      );
+    if( e instanceof Error ) {
+      if( process.env.NODE_ENV === 'production' ) {
+        sendErrorNotification(
+          e,
+          event,
+          context,
+          rateRequestBody
+        );
+      }
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: true, message: e.message }),
+      };
     }
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: true, message: e.message }),
-    };
+    else {
+      if( process.env.NODE_ENV === 'production' ) {
+        sendErrorNotification(
+          new Error('Unknown error occurred.'),
+          event,
+          context,
+          rateRequestBody
+        );
+      }
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: true, message: 'Unknown error occurred.' }),
+      };
+    }
   }
 };
 

@@ -1,4 +1,4 @@
-import rp from 'request-promise';
+import axios from 'axios';
 import { Product } from './product';
 
 /*********************************************
@@ -129,38 +129,34 @@ export class Client {
 
   async request(opts: Shopify.RequestOpts): Promise<any> {
 
-    const req: rp.Options = {
+    const req: axios.AxiosRequestConfig = {
       method: 'POST',
-      uri: `https://${this.authOpts.store}.myshopify.com/admin/api/graphql.json`,
+      url: `https://${this.authOpts.store}.myshopify.com/admin/api/graphql.json`,
       headers: {
         "Content-Type": "application/graphql",
         "X-Shopify-Access-Token": this.authOpts.accessToken
       },
-      body: opts.gqlQuery
+      data: opts.gqlQuery,
+      responseType: 'json'
     };
 
     console.log('Requesting product data from Shopify:');
     console.log( JSON.stringify(req, null, 2) );
-    const shopifyResp = await rp(req);
 
-    if(process.env.DEBUG) {
-      console.log('Shopify Response:');
-    }
-    let resp: any;
-    try {
-      resp = JSON.parse(shopifyResp);
-      if(process.env.DEBUG) {
-        console.log(JSON.stringify(resp, null, 2));
-      }
-    }
-    catch (e) {
-      resp = shopifyResp;
-      if(process.env.DEBUG) {
-        console.log(resp);
-      }
+    const resp = await axios(req);
+
+    const payload = resp.data;
+
+    if( process.env.DEBUG ) {
+      console.log('Shopify response:');
+      console.log( JSON.stringify(payload, null, 2) );
     }
 
-    return resp;
+    if( payload.errors ) {
+      throw new Error( JSON.stringify( payload.errors, null, 2 ) );
+    }
+
+    return payload;
   }
 
   async getProductData(productVariantIds: Array<number>): Promise<Array<Product>> {

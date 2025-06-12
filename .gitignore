@@ -1,4 +1,5 @@
 # secrets and envvars
+settings.*
 .env
 
 # build output

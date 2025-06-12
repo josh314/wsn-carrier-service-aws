@@ -1,8 +1,15 @@
-/* eslint-disable no-unused-vars */
-import * as shopify from './shopify/client';
-/* eslint-enable no-unused-vars */
+import type {
+  Contact,
+  PackagingType,
+  ShippingItem,
+  IRateProvider,
+  RateProviderRate,
+  ShopifyProductVariantId,
+  ShopifyRateTable,
+  ShopifyTableRate
+} from '@types';
 
-export interface TableRateProviderRate extends CarrierService.RateProviderRate {
+export interface TableRateProviderRate extends RateProviderRate {
   provider: 'TABLE'
 }
 
@@ -11,23 +18,23 @@ export interface TableRateProviderRate extends CarrierService.RateProviderRate {
  *
  **************/
 
-export class TableRateProvider implements CarrierService.RateProvider {
+export class TableRateProvider implements IRateProvider {
 
-  private table: shopify.RateTable;
+  private table: ShopifyRateTable;
 
-  constructor(rateTable: shopify.RateTable) {
+  constructor(rateTable: ShopifyRateTable) {
 
     this.table = rateTable;
 
   }
 
-  public getTableRate( productVariantId: shopify.ProductVariantId ): shopify.TableRate | undefined {
+  public getTableRate( productVariantId: ShopifyProductVariantId ): ShopifyTableRate | undefined {
 
     return this.table.get( productVariantId );
 
   }
 
-  private async getShippingItemsRatesForPackageType( shippingItems: Array<CarrierService.ShippingItem>, packagingType: CarrierService.PackagingType ): Promise< TableRateProviderRate[] > {
+  private async getShippingItemsRatesForPackageType( shippingItems: Array<ShippingItem>, packagingType: PackagingType ): Promise< TableRateProviderRate[] > {
     const tableRates: TableRateProviderRate[] = [];
 
     shippingItems.forEach( shippingItem => {
@@ -70,11 +77,11 @@ export class TableRateProvider implements CarrierService.RateProvider {
 
   }
 
-  public async getBoxRates( shippingItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< TableRateProviderRate[] > {
+  public async getBoxRates( shippingItems: Array<ShippingItem>, _destination: Contact ): Promise< TableRateProviderRate[] > {
     return this.getShippingItemsRatesForPackageType( shippingItems, 'package' );
   }
 
-  public getPalletRates( palletItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< TableRateProviderRate[] > {
+  public getPalletRates( palletItems: Array<ShippingItem>, _destination: Contact ): Promise< TableRateProviderRate[] > {
     return this.getShippingItemsRatesForPackageType( palletItems, 'pallet' );
   }
 }

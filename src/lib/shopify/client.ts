@@ -1,3 +1,12 @@
+import type {
+  ShopifyRequestOpts,
+  ShopifyProductVariantId,
+  ShopifyRateTable,
+  ShopifyTableRate,
+  ShopifyGraphQlProductVariantRate,
+  ShopifyGraphQlMultiData
+} from '@types';
+
 import axios from 'axios';
 import { Product } from './product';
 
@@ -9,12 +18,6 @@ interface ClientAuthOpts {
 	readonly store: string,
 	readonly accessToken: string,
 }
-
-export type ProductVariantId = number | null;
-
-export type TableRate = number | null;
-
-export type RateTable = Map<ProductVariantId, TableRate>;
 
 /*****************************
  * GraphQl request strings
@@ -86,7 +89,7 @@ const gqlQueries = {
 
 const productVariantId2Gid = (pvid: number | string): string => `${pvid}`.search('gid://shopify/ProductVariant/') < 0 ? `gid://shopify/ProductVariant/${pvid}` : pvid.toString();
 
-const productVariantGid2Id = ( pvid: number | string ): ProductVariantId => {
+const productVariantGid2Id = ( pvid: number | string ): ShopifyProductVariantId => {
 
   if( typeof pvid === 'number' ) {
     return pvid;
@@ -102,11 +105,11 @@ const productVariantGid2Id = ( pvid: number | string ): ProductVariantId => {
   return null;
 };
 
-function arrayifyGqlMultiData(gqlMultiData: Shopify.GraphQlMultiData): Array<any> {
+function arrayifyGqlMultiData(gqlMultiData: ShopifyGraphQlMultiData): Array<any> {
   return Object.entries(gqlMultiData).map( x => x[1] ).filter( _ => _ );
 }
 
-function graphQlProductVariantRate2RateTableEntry( graphQlProductVariantRateResponse: Shopify.GraphQlProductVariantRate ): [ ProductVariantId, TableRate ] {
+function graphQlProductVariantRate2RateTableEntry( graphQlProductVariantRateResponse: ShopifyGraphQlProductVariantRate ): [ ShopifyProductVariantId, ShopifyTableRate ] {
 
   return [
     productVariantGid2Id( graphQlProductVariantRateResponse.id ),
@@ -127,7 +130,7 @@ export class Client {
     this.authOpts = _clientAuthOpts;
   }
 
-  async request(opts: Shopify.RequestOpts): Promise<any> {
+  async request(opts: ShopifyRequestOpts): Promise<any> {
 
     const req: axios.AxiosRequestConfig = {
       method: 'POST',
@@ -161,40 +164,40 @@ export class Client {
 
   async getProductData(productVariantIds: Array<number>): Promise<Array<Product>> {
 
-    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+    const shopifyResp = await this.request({
       gqlQuery: gqlQueries.getProductData(productVariantIds.map(productVariantId2Gid)),
     });
 
-    const gqlProductVariants: Array<Shopify.GraphQlProductVariant> = arrayifyGqlMultiData(shopifyResp.data);
+    const gqlProductVariants = arrayifyGqlMultiData(shopifyResp.data);
     const products: Array<Product> = gqlProductVariants.filter( _ => _ /* filter out null */ ).map( _ => new Product(_) );
     return products;
 
   }
 
-  async getRateTable(): Promise< RateTable > {
+  async getRateTable(): Promise< ShopifyRateTable > {
 
-    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+    const shopifyResp = await this.request({
       gqlQuery: gqlQueries.getRateTable(),
     });
 
     const data = JSON.parse( shopifyResp.data.shop.metafield.value );
 
     // convert data into correct form for RateTable
-    const rateTable: RateTable = new Map( data.map( (_: { variant_id: number, rate: TableRate }) => [ _.variant_id, _.rate ]) );
+    const rateTable: ShopifyRateTable  = new Map( data.map( (_: { variant_id: ShopifyProductVariantId, rate: ShopifyTableRate }) => [ _.variant_id, _.rate ]) );
 
     return rateTable;
 
   }
 
-  async getRateTable2( productVariantIds: Array<number> ): Promise< RateTable > {
+  async getRateTable2( productVariantIds: Array<number> ): Promise< ShopifyRateTable > {
 
-    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+    const shopifyResp = await this.request({
       gqlQuery: gqlQueries.getProductVariantRates( productVariantIds.map(productVariantId2Gid) ),
     });
 
     // convert data into correct form for RateTable
     const tableEntries = arrayifyGqlMultiData( shopifyResp.data ).filter( _ => _ && _.id && _.rate /* filter out nulls */ ).map( graphQlProductVariantRate2RateTableEntry );
-    const rateTable: RateTable = new Map( tableEntries );
+    const rateTable = new Map( tableEntries );
 
     return rateTable;
 
@@ -203,7 +206,7 @@ export class Client {
 
   async getPalletBreakdownServiceRateValue() {
 
-    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+    const shopifyResp = await this.request({
       gqlQuery: gqlQueries.getPalletBreakdownServiceRate(),
     });
 

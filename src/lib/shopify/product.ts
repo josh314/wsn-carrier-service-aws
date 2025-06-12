@@ -1,4 +1,4 @@
-
+import type { IShopifyProduct, ShopifyShippingItem, ShopifyGraphQlProductVariant } from "@types";
 
 const gid2ShopifyRestId = (gid: string): number => {
   const match = gid.match(/gid:\/\/shopify\/[a-zA-Z]+\/([0-9]+)/);
@@ -12,7 +12,7 @@ const gid2ShopifyRestId = (gid: string): number => {
 
 
 // Represents all the relevant info from the Shopify product variant and it's parent product
-export class Product implements Shopify.Product {
+export class Product implements IShopifyProduct {
   // identifiers
   public readonly productId: number;
   public readonly variantId: number;
@@ -21,21 +21,21 @@ export class Product implements Shopify.Product {
   // metadata
   public readonly totalUnits?: number;
   public readonly numBoxes?: number;
-  public readonly shippingItems?: Array<Shopify.ShippingItem>;
+  public readonly shippingItems?: Array<ShopifyShippingItem>;
   public readonly tags: Array<string>;
 
   // Lot type
   public readonly isBoxLot: boolean;
   public readonly isPallet: boolean;
   public readonly isTruckload: boolean;
-  
-  public constructor(gqlProductVariant: Shopify.GraphQlProductVariant) {
+
+  public constructor(gqlProductVariant: ShopifyGraphQlProductVariant) {
     this.variantId = gid2ShopifyRestId(gqlProductVariant.id);
     this.productId = gid2ShopifyRestId(gqlProductVariant.product.id);
     this.sku = gqlProductVariant.sku;
 
 
-    try { //TODO: what about variants like everyday bargains? 
+    try { //TODO: what about variants like everyday bargains?
       this.totalUnits = parseInt(gqlProductVariant.product.totalUnits!.value as string);
     }
     catch(e) {
@@ -67,7 +67,7 @@ export class Product implements Shopify.Product {
     this.isTruckload = this.tags.some( t => t.match(/truckloads?/i) );
     this.isPallet = this.tags.some( t => t.match(/pallets?/i) );
   }
-  
+
   public shipsByFreight(): boolean {
     if( this.isTruckload ) {
       return true;

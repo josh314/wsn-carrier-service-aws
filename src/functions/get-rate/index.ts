@@ -1,5 +1,10 @@
-import { computeRates } from '../../lib/rates';
+import type {
+  RateRequestBody,
+  RateResponse,
+  RateRequest,
+} from '@types';
 
+import { computeRates } from '../../lib/rates';
 import { sendErrorNotification } from '../../lib/notify';
 
 /******************************************
@@ -8,13 +13,13 @@ import { sendErrorNotification } from '../../lib/notify';
  * ******************************/
 
 export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<AWSLambda.APIGatewayProxyResult> => {
-  let rateRequestBody: CarrierService.RateRequestBody | undefined;
+  let rateRequestBody: RateRequestBody | undefined;
   try{
     if(process.env.DEBUG) {
       console.log('event:');
       console.log(JSON.stringify(event,null,2));
     }
-    let resp: CarrierService.RateResponse | undefined;
+    let resp: RateResponse | undefined;
     if (event.httpMethod.toUpperCase() === 'POST' && event.body) {
       rateRequestBody = JSON.parse(event.body);
       resp = await getRate(rateRequestBody!.rate);
@@ -80,15 +85,15 @@ const getSampleRate = async () =>  ({
 });
 
 
-async function getRate(rateReq: CarrierService.RateRequest): Promise<CarrierService.RateResponse> {
+async function getRate(rateReq: RateRequest): Promise<RateResponse> {
 
-  const computeRateOpts: CarrierService.ComputeRateOptions = {
+  const computeRateOpts = {
     destination: rateReq.destination,
     orderItems: rateReq.items
   };
 
-  const resp: CarrierService.RateResponse = {
-    rates: await computeRates(computeRateOpts)
+  const resp: RateResponse = {
+    rates: await computeRates( computeRateOpts )
   };
 
   return resp;

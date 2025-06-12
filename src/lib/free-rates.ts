@@ -1,10 +1,17 @@
+import type {
+  IRateProvider,
+  RateProviderRate,
+  ShippingItem,
+  Contact,
+  PackagingType
+} from '@types';
 
 /***********************************************
  * Types
  *
  *******/
 
-interface FreeRateProviderRate extends CarrierService.RateProviderRate {
+interface FreeRateProviderRate extends RateProviderRate {
   provider: 'PROMO'
 }
 
@@ -13,18 +20,18 @@ interface FreeRateProviderRate extends CarrierService.RateProviderRate {
  *
  **************/
 
-export class FreeRateProvider implements CarrierService.RateProvider {
-  public async getBoxRates( shippingItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< FreeRateProviderRate[] > {
+export class FreeRateProvider implements IRateProvider {
+  public async getBoxRates( shippingItems: Array<ShippingItem>, _destination: Contact ): Promise< FreeRateProviderRate[] > {
 
     return this.getRates( 'package', shippingItems );
 
   }
 
-  public async getPalletRates( palletItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< FreeRateProviderRate[] > {
+  public async getPalletRates( palletItems: Array<ShippingItem>, _destination: Contact ): Promise< FreeRateProviderRate[] > {
     return this.getRates( 'pallet', palletItems );
   }
 
-  private async getRates( packagingType: CarrierService.PackagingType, shippingItems: Array<CarrierService.ShippingItem> ): Promise<FreeRateProviderRate[]> {
+  private async getRates( packagingType: PackagingType, shippingItems: Array<ShippingItem> ): Promise<FreeRateProviderRate[]> {
     const rates: FreeRateProviderRate[] = [];
 
     if(shippingItems.length > 0) {
@@ -36,7 +43,7 @@ export class FreeRateProvider implements CarrierService.RateProvider {
           isFreight: false //TODO: there should be some logic here instead of just setting false
         },
         packagingType: packagingType,
-        numberOfRatedItems: shippingItems.filter( _ => !_.doNotRate ).length // TODO: 
+        numberOfRatedItems: shippingItems.filter( _ => !_.doNotRate ).length // TODO:
       });
 
     }
@@ -44,7 +51,7 @@ export class FreeRateProvider implements CarrierService.RateProvider {
     return rates;
   }
 
-  public hasPromotion( shippingItem: CarrierService.ShippingItem ): boolean {
+  public hasPromotion( shippingItem: ShippingItem ): boolean {
 
     if( !shippingItem.shopifyProduct ) {
 

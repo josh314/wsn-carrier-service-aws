@@ -1,3 +1,10 @@
+import type {
+  Contact,
+  RateOptions,
+  IRateProvider,
+  RateProviderRate,
+  ShippingItem
+} from '@types';
 
 type State = string;
 type Zone = number;
@@ -69,11 +76,11 @@ interface ZoneRate {
   },
 }
 
-export interface ZoneRateOptions extends CarrierService.RateOptions {
+export interface ZoneRateOptions extends RateOptions {
   zone: Zone
 }
 
-export interface ZoneRateProviderRate extends CarrierService.RateProviderRate {
+export interface ZoneRateProviderRate extends RateProviderRate {
   provider: 'ZONE',
   options: ZoneRateOptions,
 }
@@ -81,10 +88,10 @@ export interface ZoneRateProviderRate extends CarrierService.RateProviderRate {
 
 /**********************************************************
  * RateProvider
- * 
+ *
  **************/
 
-export class ZoneRateProvider implements CarrierService.RateProvider {
+export class ZoneRateProvider implements IRateProvider {
 
   zoneRates: Array<ZoneRate>;
 
@@ -95,7 +102,7 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
         boxLot: 30,
         palletBreakdown: palletBreakdownServiceRateValue,
         palletFreight: {
-          base: 160, 
+          base: 160,
           per: 80
         }
       },
@@ -138,7 +145,7 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
     return rate;
   }
 
-  private getPalletBreakdownRate( state: State, palletItem: CarrierService.ShippingItem ): ZoneRateProviderRate {
+  private getPalletBreakdownRate( state: State, palletItem: ShippingItem ): ZoneRateProviderRate {
 
     let zone: Zone | undefined = stateZones.get( state );
     let rate: ZoneRateProviderRate;
@@ -165,7 +172,7 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
   }
 
   private getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProviderRate {
-    
+
     let zone: Zone | undefined = stateZones.get(state);
     let rate: ZoneRateProviderRate;
 
@@ -215,7 +222,7 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
 
   }
 
-  public async getBoxRates( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< ZoneRateProviderRate[] > {
+  public async getBoxRates( shippingItems: Array<ShippingItem>, destination: Contact ): Promise< ZoneRateProviderRate[] > {
     const boxLotRates: ZoneRateProviderRate[] = [];
 
     if(shippingItems.length > 0) {
@@ -226,12 +233,12 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
 
   }
 
-  public async getPalletRates( palletItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< ZoneRateProviderRate[] > {
+  public async getPalletRates( palletItems: Array<ShippingItem>, destination: Contact ): Promise< ZoneRateProviderRate[] > {
     const palletRates: ZoneRateProviderRate[] = [];
 
     const freightItems = palletItems.filter( p => p.shipsByFreight );
     const palletBreakdownItems = palletItems.filter( p => !p.shipsByFreight );
-  
+
     if( freightItems.length > 0 ) {
       palletRates.push( this.getPalletFreightRate( destination.province , freightItems.length ) );
     }

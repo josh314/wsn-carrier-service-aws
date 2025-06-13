@@ -175,7 +175,7 @@ const getOrderItemShippingItems = (rateEachShippingItem: boolean ) => ( orderIte
   else {
     const num = product.numBoxes ? product.numBoxes * orderItem.quantity : orderItem.quantity;
 
-    shippingItems = Array( num ).fill( baseShippingItem );
+    shippingItems = Array<ShippingItem>( num ).fill( baseShippingItem );
   }
 
   return shippingItems;
@@ -222,7 +222,7 @@ export async function computeRates(opts: ComputeRateOptions): Promise< Array<Rat
     console.log( JSON.stringify(products, null, 2) );
   }
 
-  const rateTable = await shopifyClient.getRateTable2( productVariantIds );
+  const rateTable = await shopifyClient.getRateTable( productVariantIds );
   const tableRateProvider = new TableRateProvider( rateTable );
 
   const palletBreakdownServiceRateValue = await shopifyClient.getPalletBreakdownServiceRateValue();

@@ -21,8 +21,8 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     }
     let resp: RateResponse | undefined;
     if (event.httpMethod.toUpperCase() === 'POST' && event.body) {
-      rateRequestBody = JSON.parse(event.body);
-      resp = await getRate(rateRequestBody!.rate);
+      rateRequestBody = JSON.parse(event.body) as RateRequestBody; // just believe me
+      resp = await getRate(rateRequestBody.rate);
     }
     else if (event.httpMethod.toUpperCase() === 'GET') {
       resp = await getSampleRate();

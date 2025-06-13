@@ -30,7 +30,9 @@ interface ShopifyGraphQlThrottleStatus {
   currentlyAvailable: number,
   restoreRate: number
 }
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 type ShopifyGraphQlResponseData = ShopifyGraphQlData | ShopifyGraphQlMultiData;
+/* eslint-enable @typescript-eslint/no-redundant-type-constituents */
 
 type ShopifyGraphQlData = any;
 

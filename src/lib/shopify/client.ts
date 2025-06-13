@@ -1,8 +1,16 @@
+// Because of the unstructured GraphQl responses, we need to disable some eslint rules.
+// There are some global disables and some scoped ones
+
+// global eslint disables
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import type {
   ShopifyRequestOpts,
   ShopifyProductVariantId,
   ShopifyRateTable,
   ShopifyTableRate,
+  ShopifyGraphQlProductVariant,
   ShopifyGraphQlProductVariantRate,
   ShopifyGraphQlMultiData
 } from '@types';
@@ -106,7 +114,9 @@ const productVariantGid2Id = ( pvid: number | string ): ShopifyProductVariantId 
 };
 
 function arrayifyGqlMultiData(gqlMultiData: ShopifyGraphQlMultiData): Array<any> {
+  /* eslint-disable @typescript-eslint/no-unsafe-return */
   return Object.entries(gqlMultiData).map( x => x[1] ).filter( _ => _ );
+  /* eslint-enable @typescript-eslint/no-unsafe-return */
 }
 
 function graphQlProductVariantRate2RateTableEntry( graphQlProductVariantRateResponse: ShopifyGraphQlProductVariantRate ): [ ShopifyProductVariantId, ShopifyTableRate ] {
@@ -147,8 +157,9 @@ export class Client {
     console.log( JSON.stringify(req, null, 2) );
 
     const resp = await axios(req);
-
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
     const payload = resp.data;
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
     if( process.env.DEBUG ) {
       console.log('Shopify response:');
@@ -164,36 +175,25 @@ export class Client {
 
   async getProductData(productVariantIds: Array<number>): Promise<Array<Product>> {
 
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
     const shopifyResp = await this.request({
       gqlQuery: gqlQueries.getProductData(productVariantIds.map(productVariantId2Gid)),
     });
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
-    const gqlProductVariants = arrayifyGqlMultiData(shopifyResp.data);
+    const gqlProductVariants = arrayifyGqlMultiData(shopifyResp.data) as Array<ShopifyGraphQlProductVariant>;
     const products: Array<Product> = gqlProductVariants.filter( _ => _ /* filter out null */ ).map( _ => new Product(_) );
     return products;
 
   }
 
-  async getRateTable(): Promise< ShopifyRateTable > {
+  async getRateTable( productVariantIds: Array<number> ): Promise< ShopifyRateTable > {
 
-    const shopifyResp = await this.request({
-      gqlQuery: gqlQueries.getRateTable(),
-    });
-
-    const data = JSON.parse( shopifyResp.data.shop.metafield.value );
-
-    // convert data into correct form for RateTable
-    const rateTable: ShopifyRateTable  = new Map( data.map( (_: { variant_id: ShopifyProductVariantId, rate: ShopifyTableRate }) => [ _.variant_id, _.rate ]) );
-
-    return rateTable;
-
-  }
-
-  async getRateTable2( productVariantIds: Array<number> ): Promise< ShopifyRateTable > {
-
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
     const shopifyResp = await this.request({
       gqlQuery: gqlQueries.getProductVariantRates( productVariantIds.map(productVariantId2Gid) ),
     });
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
     // convert data into correct form for RateTable
     const tableEntries = arrayifyGqlMultiData( shopifyResp.data ).filter( _ => _ && _.id && _.rate /* filter out nulls */ ).map( graphQlProductVariantRate2RateTableEntry );
@@ -206,11 +206,13 @@ export class Client {
 
   async getPalletBreakdownServiceRateValue() {
 
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
     const shopifyResp = await this.request({
       gqlQuery: gqlQueries.getPalletBreakdownServiceRate(),
     });
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
-    const rateValue: number = JSON.parse( shopifyResp.data.shop.metafield.value );
+    const rateValue: number = JSON.parse( shopifyResp.data.shop.metafield.value ) as number;
 
     return rateValue;
 

@@ -50,7 +50,7 @@ export class Product implements IShopifyProduct {
     }
 
     try {
-      this.shippingItems = JSON.parse(gqlProductVariant.shippingItems!.value);
+      this.shippingItems = JSON.parse(gqlProductVariant.shippingItems!.value) as Array<ShopifyShippingItem>;
     }
     catch(e) {
       console.log(`No valid shippingItems JSON for product variant ${this.variantId}.`);

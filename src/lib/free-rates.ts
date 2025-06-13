@@ -31,7 +31,7 @@ export class FreeRateProvider implements IRateProvider {
     return this.getRates( 'pallet', palletItems );
   }
 
-  private async getRates( packagingType: PackagingType, shippingItems: Array<ShippingItem> ): Promise<FreeRateProviderRate[]> {
+  private getRates( packagingType: PackagingType, shippingItems: Array<ShippingItem> ): Promise<FreeRateProviderRate[]> {
     const rates: FreeRateProviderRate[] = [];
 
     if(shippingItems.length > 0) {
@@ -48,7 +48,7 @@ export class FreeRateProvider implements IRateProvider {
 
     }
 
-    return rates;
+    return Promise.resolve(rates);
   }
 
   public hasPromotion( shippingItem: ShippingItem ): boolean {

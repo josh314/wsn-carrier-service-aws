@@ -11,12 +11,12 @@ export enum WeightUnitsEnum {
   g = "grams"
 }
 
-export type DimensionUnits = 
-  'feet' | /* TODO: not valid  in Shipstation */ 
+export type DimensionUnits =
+  'feet' | /* TODO: not valid  in Shipstation */
   'inches' |
   'centimeters';
 
-export type WeightUnits = 
-  'pounds' | 
-  'ounces' | 
+export type WeightUnits =
+  'pounds' |
+  'ounces' |
   'grams';

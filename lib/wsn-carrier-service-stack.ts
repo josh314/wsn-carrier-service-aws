@@ -4,11 +4,11 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 
 import settings from '../settings';
-import { isEnv } from '@types'
+import { isEnv } from '@types';
 
 function isProduction() : boolean {
   if( process.env.NODE_ENV && process.env.NODE_ENV.match('prod') ) {
-    return true
+    return true;
   }
   return false;
 }

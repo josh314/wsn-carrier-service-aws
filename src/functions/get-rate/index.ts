@@ -42,7 +42,7 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     console.error(e);
     if( e instanceof Error ) {
       if( process.env.NODE_ENV === 'production' ) {
-        sendErrorNotification(
+        void sendErrorNotification(
           e,
           event,
           context,
@@ -56,7 +56,7 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     }
     else {
       if( process.env.NODE_ENV === 'production' ) {
-        sendErrorNotification(
+        void sendErrorNotification(
           new Error('Unknown error occurred.'),
           event,
           context,
@@ -72,7 +72,7 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
 };
 
 
-const getSampleRate = async () =>  ({
+const getSampleRate = () =>  Promise.resolve({
   rates: [
     {
       service_name: 'Fast, Convenient Shipping',

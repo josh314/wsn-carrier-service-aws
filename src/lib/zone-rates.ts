@@ -121,7 +121,7 @@ export class ZoneRateProvider implements IRateProvider {
 
   private getBoxRateForState(state: State, numberOfItems: number): ZoneRateProviderRate {
 
-    let zone: Zone | undefined = stateZones.get(state);
+    const zone: Zone | undefined = stateZones.get(state);
     let rate: ZoneRateProviderRate;
 
     if(typeof zone !== 'undefined') {
@@ -147,7 +147,7 @@ export class ZoneRateProvider implements IRateProvider {
 
   private getPalletBreakdownRate( state: State, palletItem: ShippingItem ): ZoneRateProviderRate {
 
-    let zone: Zone | undefined = stateZones.get( state );
+    const zone: Zone | undefined = stateZones.get( state );
     let rate: ZoneRateProviderRate;
 
     if(typeof zone !== 'undefined') {
@@ -173,7 +173,7 @@ export class ZoneRateProvider implements IRateProvider {
 
   private getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProviderRate {
 
-    let zone: Zone | undefined = stateZones.get(state);
+    const zone: Zone | undefined = stateZones.get(state);
     let rate: ZoneRateProviderRate;
 
     if(typeof zone !== 'undefined') {
@@ -207,7 +207,7 @@ export class ZoneRateProvider implements IRateProvider {
       throw new Error(`Cannot combine rates with different zones.`);
     }
 
-    let rate: ZoneRateProviderRate = {
+    const rate: ZoneRateProviderRate = {
       provider: 'ZONE',
       cost: r1.cost + r2.cost,
       packagingType: 'pallet',
@@ -222,18 +222,18 @@ export class ZoneRateProvider implements IRateProvider {
 
   }
 
-  public async getBoxRates( shippingItems: Array<ShippingItem>, destination: Contact ): Promise< ZoneRateProviderRate[] > {
+  public getBoxRates( shippingItems: Array<ShippingItem>, destination: Contact ): Promise< ZoneRateProviderRate[] > {
     const boxLotRates: ZoneRateProviderRate[] = [];
 
     if(shippingItems.length > 0) {
       boxLotRates.push( this.getBoxRateForState( destination.province , shippingItems.length ) );
     }
 
-    return boxLotRates;
+    return Promise.resolve( boxLotRates );
 
   }
 
-  public async getPalletRates( palletItems: Array<ShippingItem>, destination: Contact ): Promise< ZoneRateProviderRate[] > {
+  public getPalletRates( palletItems: Array<ShippingItem>, destination: Contact ): Promise< ZoneRateProviderRate[] > {
     const palletRates: ZoneRateProviderRate[] = [];
 
     const freightItems = palletItems.filter( p => p.shipsByFreight );
@@ -243,6 +243,8 @@ export class ZoneRateProvider implements IRateProvider {
       palletRates.push( this.getPalletFreightRate( destination.province , freightItems.length ) );
     }
 
-    return palletRates.concat( palletBreakdownItems.map( _item => this.getPalletBreakdownRate( destination.province, _item ) ) );
+    const res = palletRates.concat( palletBreakdownItems.map( _item => this.getPalletBreakdownRate( destination.province, _item ) ) );
+
+    return Promise.resolve( res );
   }
 }

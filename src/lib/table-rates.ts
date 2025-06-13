@@ -34,7 +34,7 @@ export class TableRateProvider implements IRateProvider {
 
   }
 
-  private async getShippingItemsRatesForPackageType( shippingItems: Array<ShippingItem>, packagingType: PackagingType ): Promise< TableRateProviderRate[] > {
+  private getShippingItemsRatesForPackageType( shippingItems: Array<ShippingItem>, packagingType: PackagingType ): Promise< TableRateProviderRate[] > {
     const tableRates: TableRateProviderRate[] = [];
 
     shippingItems.forEach( shippingItem => {
@@ -49,7 +49,7 @@ export class TableRateProvider implements IRateProvider {
 
       if( tableRateEntry ) {
 
-        let rate: TableRateProviderRate = {
+        const rate: TableRateProviderRate = {
           provider: 'TABLE',
           cost: 0, // cost is 0 by default
           packagingType,
@@ -73,7 +73,7 @@ export class TableRateProvider implements IRateProvider {
     });
 
 
-    return tableRates;
+    return Promise.resolve( tableRates );
 
   }
 

@@ -66,7 +66,7 @@ class Rate implements IRate {
       // If not freight, compute and provide some more data on number and weight of boxes
 
       const unweighedShippingItems = shippingItems.filter( _ => !_.weight );
-      let weighedShippingItems = shippingItems.filter( _ => _.weight );
+      const weighedShippingItems = shippingItems.filter( _ => _.weight );
 
       // check if any "pallet"-sized shipping items. If this code is run, such items are going to be broken down as the freight option has already been passed
       const palletShippingItems = weighedShippingItems.filter( _ => _.weight >= 2000 );
@@ -80,7 +80,7 @@ class Rate implements IRate {
         estimatedPalletBreakdownShippingItems,
         unweighedShippingItems.map( _ => Object.assign( _, { weight: 40 } ) ), // add an estimated weight, but don't bother with linear dims
       );
-      const totalBoxWeight = finalEstimatedShippingItems.reduce( ( totalBoxWeight, _item ) => totalBoxWeight + _item.weight , 0 );
+      const _totalBoxWeight = finalEstimatedShippingItems.reduce( ( totalBoxWeight, _item ) => totalBoxWeight + _item.weight , 0 );
 
       const hasPalletBreakdownService = rateProviderRates.some( isPalletBreakdownServiceRate );
       if ( hasPalletBreakdownService ) {
@@ -235,7 +235,7 @@ export async function computeRates(opts: ComputeRateOptions): Promise< Array<Rat
 
     if( dressedOrderItem.shopifyProduct && dressedOrderItem.shopifyProduct.variantId ) {
 
-      let tableRate = tableRateProvider.getTableRate( dressedOrderItem.shopifyProduct.variantId );
+      const tableRate = tableRateProvider.getTableRate( dressedOrderItem.shopifyProduct.variantId );
       return typeof tableRate === 'number';
     }
     else {

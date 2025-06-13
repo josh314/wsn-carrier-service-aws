@@ -3,8 +3,7 @@ import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 
-import settings from '../settings';
-import { isEnv } from '@types';
+import type { Env, EnvSettings, LambdaEnv } from '@types';
 
 function isProduction() : boolean {
   if( process.env.NODE_ENV && process.env.NODE_ENV.match('prod') ) {
@@ -14,12 +13,24 @@ function isProduction() : boolean {
 }
 
 interface WsnCarrierServiceStackProps extends cdk.StackProps {
+  stackEnv: Env;
+  envSettings: EnvSettings;
 }
 
 export class WsnCarrierServiceStack extends cdk.Stack {
 
-  constructor( scope: Construct, id: string, props?: WsnCarrierServiceStackProps ) {
+  stackEnv: Env;
+  notificationEmails: string[];
+  lambdaEnv: LambdaEnv;
+
+  constructor( scope: Construct, id: string, props: WsnCarrierServiceStackProps ) {
     super( scope, id, props );
+    const { stackEnv, envSettings } = props;
+
+    this.stackEnv = stackEnv;
+    this.notificationEmails = envSettings.notificationEmails;
+    this.lambdaEnv = envSettings.lambdaEnv;
+
     this.configureLambdaFunction();
   }
 
@@ -46,14 +57,9 @@ export class WsnCarrierServiceStack extends cdk.Stack {
       ...( !isProduction() ? { sourceMapMode: cdk.aws_lambda_nodejs.SourceMapMode.BOTH } : {} ),
     };
 
-    // defaults to dev if NODE_ENV is not set
-    const rawEnv = process.env.NODE_ENV || 'dev';
-    const env = isEnv( rawEnv ) ? rawEnv : 'dev';
-
     const environment = {
       DEBUG: process.env.DEBUG ?? '',
-      NODE_ENV: env,
-      ...settings[ env ]
+      // NODE_ENV: this.stackEnv,
     };
 
     const fnProperties: cdk.aws_lambda_nodejs.NodejsFunctionProps = {

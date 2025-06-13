@@ -1,13 +1,24 @@
-export interface LambdaEnvironment {
+export interface LambdaEnv {
   SHOPIFY_STORE_NAME: string;
   SHOPIFY_ACCESS_TOKEN: string;
 }
 
-export interface Settings {
-  prod: LambdaEnvironment,
-  dev: LambdaEnvironment,
+export const envs = [ 'prod', 'dev' ] as const;
+
+export type Env = typeof envs[ number ];
+
+export type EnvSettings = {
+  notificationEmails: string[];
+  lambdaEnv: LambdaEnv;
 }
 
-export function isEnv(key: string): key is keyof Settings {
-  return key === 'prod' || key === 'dev';
+export type Settings = {
+  [K in Env]: EnvSettings;
+};
+
+export function isEnv(key: string | undefined ): key is Env {
+  if( !key ) {
+    return false;
+  }
+  return ( envs as readonly string[] ).includes( key );
 }

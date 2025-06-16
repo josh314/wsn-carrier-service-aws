@@ -2,6 +2,7 @@
 import globals  from "globals";
 import js        from "@eslint/js";
 import tseslint  from "typescript-eslint";
+import stylistic from '@stylistic/eslint-plugin';
 
 /* ---------- shared snippets ------------------------------------------------ */
 
@@ -47,8 +48,11 @@ export default [
       ...js.configs.recommended.languageOptions,
       globals: globals.node,           // Node-built-ins in JS too
     },
+    plugins: {
+      '@stylistic': stylistic
+    },
     rules: {
-      indent,
+      '@stylistic/indent': indent, // stylistic indent
       "no-unused-vars": noUnusedVars,
       semi,
     },
@@ -94,11 +98,14 @@ export default [
   // TS - custom rule overrides (step 3)
   {
     files: tsFiles,
+    plugins: {
+      '@stylistic': stylistic
+    },
     rules: {
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": noUnusedVars,
       "@typescript-eslint/no-explicit-any": "off",
-      indent,
+      '@stylistic/indent': indent,
       semi,
     },
   },

@@ -23,8 +23,8 @@ import { Product } from './product';
  *
  * *******************/
 interface ClientAuthOpts {
-	readonly store: string,
-	readonly accessToken: string,
+  readonly store: string,
+  readonly accessToken: string,
 }
 
 /*****************************

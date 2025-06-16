@@ -2,8 +2,13 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 import type { Env, EnvSettings, LambdaEnv } from '@types';
+
+const SNS_TOPIC_NAME = 'WsnCarrierServiceFailureTopic';
 
 function isProduction() : boolean {
   if( process.env.NODE_ENV && process.env.NODE_ENV.match('prod') ) {
@@ -31,7 +36,31 @@ export class WsnCarrierServiceStack extends cdk.Stack {
     this.notificationEmails = envSettings.notificationEmails;
     this.lambdaEnv = envSettings.lambdaEnv;
 
-    this.configureLambdaFunction();
+    const fn = this.configureLambdaFunction();
+
+    // Configure an SNS topic to publish failure notifications to. Grant the Lambda function permission to publish to it.
+    const topic = this.configureNotifications();
+    topic.grantPublish( fn );
+
+  }
+
+  topicArn() {
+    const stack = cdk.Stack.of(this);
+    return `arn:aws:sns:${ stack.region }:${ stack.account }:${ SNS_TOPIC_NAME }`;
+  }
+
+  configureNotifications() {
+
+    // Configure topic for failure notifications
+    const topic = new sns.Topic( this, 'FailureTopic', {
+      displayName: 'Wholesale Ninjas Shopify Carrier Service Failure',
+      topicName: 'WsnCarrierServiceFailureTopic',
+    } );
+    const email = ssm.StringParameter.valueForStringParameter( this, '/notifications/email/admin' );
+    topic.addSubscription( new subscriptions.EmailSubscription( email ) );
+
+    return topic;
+
   }
 
   configureLambdaFunction() {
@@ -58,8 +87,11 @@ export class WsnCarrierServiceStack extends cdk.Stack {
     };
 
     const environment = {
-      DEBUG: process.env.DEBUG ?? '',
-      // NODE_ENV: this.stackEnv,
+      ...( process.env.DEBUG ? { DEBUG: process.env.DEBUG } : {} ),
+      ...( isProduction() ? {} : { NODE_OPTIONS: '--enable-source-maps' } ),
+      NODE_ENV: this.stackEnv,
+      SNS_TOPIC_ARN: this.topicArn(),
+      ...this.lambdaEnv,
     };
 
     const fnProperties: cdk.aws_lambda_nodejs.NodejsFunctionProps = {

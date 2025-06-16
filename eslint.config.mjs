@@ -10,13 +10,24 @@ const tsFilesInfra = ["*.ts", "lib/*.ts" ];
 const tsFilesLambda = [ "src/**/*.ts" ];
 const tsFiles = [...tsFilesInfra, ...tsFilesLambda];
 
-const noUnused = [
+const noUnusedVars = [
   "warn",
   {
     varsIgnorePattern  : "^_",   // allow const _foo = …
     argsIgnorePattern  : "^_",   // allow function ( _evt )
     caughtErrors       : "none",
   },
+];
+
+const indent = [
+  "warn",
+  2,                             // 2 spaces
+  { SwitchCase: 1 },             // indent switch cases
+];
+
+const semi = [
+  "warn",
+  "always",
 ];
 
 /* ---------- config --------------------------------------------------------- */
@@ -37,9 +48,9 @@ export default [
       globals: globals.node,           // Node-built-ins in JS too
     },
     rules: {
-      indent: ["warn", 2, { SwitchCase: 1 }],
-      "no-unused-vars": noUnused,
-      semi: ["warn", "always"],
+      indent,
+      "no-unused-vars": noUnusedVars,
+      semi,
     },
   },
 
@@ -85,10 +96,10 @@ export default [
     files: tsFiles,
     rules: {
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": noUnused,
+      "@typescript-eslint/no-unused-vars": noUnusedVars,
       "@typescript-eslint/no-explicit-any": "off",
-      indent: "off",
-      semi: ["warn", "always"],
+      indent,
+      semi,
     },
   },
 

@@ -8,6 +8,16 @@ import { computeRates } from '../../lib/rates';
 import { sendErrorNotification } from '../../lib/notify';
 
 /******************************************
+ * Helpers
+ *
+ * ******************************/
+
+function isProduction(): boolean {
+  return process.env.NODE_ENV && process.env.NODE_ENV.match('prod') ? true : false;
+}
+
+
+/******************************************
  * Handler
  *
  * ******************************/
@@ -40,34 +50,31 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
   catch (e) {
     console.error(new Date());
     console.error(e);
+
+    let message: string;
+    let error: Error;
     if( e instanceof Error ) {
-      if( process.env.NODE_ENV === 'production' ) {
-        void sendErrorNotification(
-          e,
-          event,
-          context,
-          rateRequestBody
-        );
-      }
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: true, message: e.message }),
-      };
+      message = e.message;
+      error = e;
     }
     else {
-      if( process.env.NODE_ENV === 'production' ) {
-        void sendErrorNotification(
-          new Error('Unknown error occurred.'),
-          event,
-          context,
-          rateRequestBody
-        );
-      }
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: true, message: 'Unknown error occurred.' }),
-      };
+      message = 'Unknown error occurred.';
+      error = new Error(message);
     }
+
+    if( isProduction() ) {
+      await sendErrorNotification(
+        error,
+        event,
+        context,
+        rateRequestBody
+      );
+    }
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: true, message }),
+    };
+
   }
 };
 

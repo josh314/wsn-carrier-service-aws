@@ -17,6 +17,7 @@
   },
   "homepage": "https://gitlab.com/wazue/wsn-carrier-service-aws#readme",
   "dependencies": {
+    "@aws-sdk/client-sns": "^3.828.0",
     "aws-cdk-lib": "^2.200.1",
     "axios": "^1.9.0",
     "constructs": "^10.4.2"

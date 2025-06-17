@@ -5,6 +5,7 @@ import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
 import type { Env, EnvSettings, LambdaEnv } from '@types';
 
@@ -36,11 +37,13 @@ export class WsnCarrierServiceStack extends cdk.Stack {
     this.notificationEmails = envSettings.notificationEmails;
     this.lambdaEnv = envSettings.lambdaEnv;
 
-    const fn = this.configureLambdaFunction();
+    const fn = this.createLambdaFunction();
 
     // Configure an SNS topic to publish failure notifications to. Grant the Lambda function permission to publish to it.
-    const topic = this.configureNotifications();
+    const topic = this.createNotificationTopic();
     topic.grantPublish( fn );
+
+    const api = this.createAPI( fn )
 
   }
 
@@ -49,7 +52,7 @@ export class WsnCarrierServiceStack extends cdk.Stack {
     return `arn:aws:sns:${ stack.region }:${ stack.account }:${ SNS_TOPIC_NAME }`;
   }
 
-  configureNotifications() {
+  createNotificationTopic() {
 
     // Configure topic for failure notifications
     const topic = new sns.Topic( this, 'FailureTopic', {
@@ -63,7 +66,7 @@ export class WsnCarrierServiceStack extends cdk.Stack {
 
   }
 
-  configureLambdaFunction() {
+  createLambdaFunction() {
     const fnName = 'WsnCarrierServiceLambda';
 
     const bundlingOpts: cdk.aws_lambda_nodejs.BundlingOptions = {
@@ -100,6 +103,7 @@ export class WsnCarrierServiceStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_22_X,
       entry: `src/functions/get-rate/index.ts`,
       handler: 'handler',
+      timeout: cdk.Duration.seconds( 60 ),
       environment,
       bundling: bundlingOpts,
     };
@@ -107,6 +111,20 @@ export class WsnCarrierServiceStack extends cdk.Stack {
     const fn = new lambdaNodejs.NodejsFunction( this, fnName, fnProperties );
 
     return fn;
+
+  }
+
+  createAPI( fn: cdk.aws_lambda.Function ) {
+
+    const api = new apigateway.LambdaRestApi( this, 'ApiGateway', {
+      handler: fn,
+      description: `Wholesale Ninjas Shopify Carrier Service API`,
+      restApiName: 'WsnCarrierServiceAPI',
+      proxy: true,
+      // endpointTypes: [ apigateway.EndpointType.EDGE ]
+    });
+
+    return api;
 
   }
 

@@ -8,8 +8,9 @@ export const envs = [ 'prod', 'dev' ] as const;
 export type Env = typeof envs[ number ];
 
 export type EnvSettings = {
-  notificationEmails: string[];
   lambdaEnv: LambdaEnv;
+  hostedZoneDomain?: string,
+  domainName?: string,
 }
 
 export type Settings = {

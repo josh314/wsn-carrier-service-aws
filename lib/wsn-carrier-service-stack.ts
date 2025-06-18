@@ -6,6 +6,9 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 
 import type { Env, EnvSettings, LambdaEnv } from '@types';
 
@@ -26,24 +29,29 @@ interface WsnCarrierServiceStackProps extends cdk.StackProps {
 export class WsnCarrierServiceStack extends cdk.Stack {
 
   stackEnv: Env;
-  notificationEmails: string[];
   lambdaEnv: LambdaEnv;
+  hostedZoneDomain?: string;
+  domainName?: string;
+  function: lambdaNodejs.NodejsFunction;
+  topic: sns.ITopic;
+  api: apigateway.RestApi;
 
   constructor( scope: Construct, id: string, props: WsnCarrierServiceStackProps ) {
     super( scope, id, props );
     const { stackEnv, envSettings } = props;
 
     this.stackEnv = stackEnv;
-    this.notificationEmails = envSettings.notificationEmails;
     this.lambdaEnv = envSettings.lambdaEnv;
+    this.hostedZoneDomain = envSettings.hostedZoneDomain;
+    this.domainName = envSettings.domainName;
 
-    const fn = this.createLambdaFunction();
+    this.function = this.createLambdaFunction();
 
     // Configure an SNS topic to publish failure notifications to. Grant the Lambda function permission to publish to it.
-    const topic = this.createNotificationTopic();
-    topic.grantPublish( fn );
+    this.topic = this.createNotificationTopic();
+    this.topic.grantPublish( this.function);
 
-    const api = this.createAPI( fn )
+    this.api = this.createAPI();
 
   }
 
@@ -114,15 +122,64 @@ export class WsnCarrierServiceStack extends cdk.Stack {
 
   }
 
-  createAPI( fn: cdk.aws_lambda.Function ) {
+  createAPI() {
+
+    let certificate;
+    let hostedZone;
+    if( this.hostedZoneDomain && this.domainName ) {
+
+      hostedZone = route53.HostedZone.fromLookup( this, 'HostedZone', {
+        domainName: this.hostedZoneDomain,
+      });
+
+      certificate = new acm.Certificate( this, 'ApiGatewayCertificate', {
+        domainName: this.domainName,
+        certificateName: 'Wholesale Ninjas Shopify Carrier Service Certificate',
+        validation: acm.CertificateValidation.fromDns( hostedZone ),
+      });
+
+    }
 
     const api = new apigateway.LambdaRestApi( this, 'ApiGateway', {
-      handler: fn,
+      handler: this.function,
       description: `Wholesale Ninjas Shopify Carrier Service API`,
       restApiName: 'WsnCarrierServiceAPI',
       proxy: true,
-      // endpointTypes: [ apigateway.EndpointType.EDGE ]
+      ...(
+        this.domainName && certificate ?
+
+          {
+            domainName: {
+              domainName: this.domainName,
+              certificate,
+              endpointType: apigateway.EndpointType.EDGE,
+            },
+          } :
+
+          {}
+      ),
+
     });
+
+    if( hostedZone && this.domainName ) {
+
+      const target = route53.RecordTarget.fromAlias(
+        new route53Targets.ApiGateway( api )
+      );
+
+      new route53.ARecord(this, 'CustomDomainAliasRecord', {
+        zone: hostedZone,
+        recordName: this.domainName,
+        target,
+      });
+
+      new route53.AaaaRecord(this, 'CustomDomainAliasRecordAAAA', {
+        zone: hostedZone,
+        recordName: this.domainName,
+        target,
+      });
+
+    }
 
     return api;
 

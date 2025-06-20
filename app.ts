@@ -6,6 +6,11 @@ import { isEnv } from './types';
 const rawNodeEnv = process.env.NODE_ENV;
 const nodeEnv = isEnv( rawNodeEnv ) ? rawNodeEnv : 'dev';
 
+if( nodeEnv === 'local' ) {
+  console.error('Cannot deploy stack locally. Please set NODE_ENV to "dev" or "prod".');
+  process.exit(1);
+}
+
 import settings from './settings';
 
 const app = new cdk.App();

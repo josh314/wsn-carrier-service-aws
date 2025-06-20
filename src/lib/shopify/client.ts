@@ -128,6 +128,13 @@ function graphQlProductVariantRate2RateTableEntry( graphQlProductVariantRateResp
 
 }
 
+function redactSensitiveInformation( key: string, val: any ): any {
+  if (key.toLowerCase() === 'x-shopify-access-token') {
+    return "[REDACTED]";
+  }
+  return val;
+}
+
 /*****************************************
  * Client
  *
@@ -154,7 +161,7 @@ export class Client {
     };
 
     console.log('Requesting product data from Shopify:');
-    console.log( JSON.stringify(req, null, 2) );
+    console.log( JSON.stringify(req, redactSensitiveInformation, 2) );
 
     const resp = await axios(req);
     /* eslint-disable @typescript-eslint/no-unsafe-assignment */

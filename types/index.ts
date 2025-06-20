@@ -3,7 +3,7 @@ export interface LambdaEnv {
   SHOPIFY_ACCESS_TOKEN: string;
 }
 
-export const envs = [ 'prod', 'dev' ] as const;
+export const envs = [ 'prod', 'dev', 'local' ] as const;
 
 export type Env = typeof envs[ number ];
 
